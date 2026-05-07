@@ -1,5 +1,5 @@
 {
-  "name": "handoff-context",
+  "name": "@alphasense-org/handoff-context",
   "version": "0.1.0",
   "description": "Floating annotation layer for React prototypes",
   "type": "module",
@@ -25,7 +25,11 @@
   "scripts": {
     "build": "vite build",
     "prepare": "npm run build",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "publish:gitlab": "npm publish"
+  },
+  "publishConfig": {
+    "@alphasense-org:registry": "https://gitlab.com/api/v4/projects/82000158/packages/npm/"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
