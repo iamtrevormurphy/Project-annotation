@@ -16,6 +16,20 @@ export function Popover({ pin, onUpdate, onDelete, onClose }: PopoverProps) {
     textareaRef.current?.focus()
   }, [pin.id])
 
+  // window capture fires before document capture, so stopImmediatePropagation here
+  // prevents any document-level focus trap (e.g. MUI Menu/Modal) from stealing
+  // focus back when the user clicks into our textarea.
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as Element | null
+      if (target?.closest('[data-handoff]')) {
+        e.stopImmediatePropagation()
+      }
+    }
+    window.addEventListener('focusin', handleFocusIn, { capture: true })
+    return () => window.removeEventListener('focusin', handleFocusIn, { capture: true })
+  }, [])
+
   return (
     <div className={styles.popover} data-handoff>
       <div className={styles.header}>
