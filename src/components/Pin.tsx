@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { Pin as PinType } from '../hooks/useAnnotations'
 import { Popover } from './Popover'
 import styles from './Pin.module.css'
@@ -11,38 +11,75 @@ interface PinProps {
   onDelete: (id: string) => void
 }
 
-const POPOVER_OFFSET = 12
+interface ViewportPos {
+  x: number
+  y: number
+}
+
+function resolvePosition(pin: PinType): ViewportPos | null {
+  try {
+    const el = document.querySelector(pin.selector)
+    if (!el) return null
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 && rect.height === 0) return null
+    return {
+      x: rect.left + pin.offsetXPercent * rect.width,
+      y: rect.top + pin.offsetYPercent * rect.height,
+    }
+  } catch {
+    return null
+  }
+}
 
 export function Pin({ pin, isOpen, onToggle, onUpdate, onDelete }: PinProps) {
-  const markerRef = useRef<HTMLButtonElement>(null)
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
+  const [pos, setPos] = useState<ViewportPos | null>(() => resolvePosition(pin))
 
   useEffect(() => {
-    if (!isOpen || !markerRef.current) {
-      setPopoverPos(null)
-      return
+    let rafId: number
+    let mutationTimer: ReturnType<typeof setTimeout>
+
+    function update() {
+      setPos(resolvePosition(pin))
     }
-    const rect = markerRef.current.getBoundingClientRect()
-    const popoverHeight = 200
-    const top = (window.innerHeight - rect.bottom) > popoverHeight
-      ? pin.pageY + POPOVER_OFFSET
-      : pin.pageY - popoverHeight - POPOVER_OFFSET
 
-    const left = Math.min(
-      pin.pageX + POPOVER_OFFSET,
-      window.scrollX + window.innerWidth - 280,
-    )
+    function scheduleRaf() {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(update)
+    }
 
-    setPopoverPos({ top, left })
-  }, [isOpen, pin.pageX, pin.pageY])
+    function scheduleMutation() {
+      clearTimeout(mutationTimer)
+      mutationTimer = setTimeout(update, 80)
+    }
+
+    update()
+
+    const observer = new MutationObserver(scheduleMutation)
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] })
+
+    window.addEventListener('scroll', scheduleRaf, { capture: true, passive: true })
+    window.addEventListener('resize', scheduleRaf)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      clearTimeout(mutationTimer)
+      observer.disconnect()
+      window.removeEventListener('scroll', scheduleRaf, { capture: true })
+      window.removeEventListener('resize', scheduleRaf)
+    }
+  }, [pin.selector, pin.offsetXPercent, pin.offsetYPercent])
+
+  if (!pos) return null
+
+  const popoverLeft = Math.min(pos.x + 12, window.innerWidth - 280)
+  const popoverTop = pos.y + 12
 
   return (
     <>
       <button
-        ref={markerRef}
         data-handoff
         className={styles.pin}
-        style={{ top: pin.pageY, left: pin.pageX }}
+        style={{ top: pos.y, left: pos.x }}
         onClick={onToggle}
         aria-label="Annotation pin"
       >
@@ -55,15 +92,10 @@ export function Pin({ pin, isOpen, onToggle, onUpdate, onDelete }: PinProps) {
         </svg>
       </button>
 
-      {isOpen && popoverPos && (
+      {isOpen && (
         <div
           data-handoff
-          style={{
-            position: 'absolute',
-            top: popoverPos.top,
-            left: popoverPos.left,
-            zIndex: 2147483646,
-          }}
+          style={{ position: 'fixed', top: popoverTop, left: popoverLeft, zIndex: 2147483646 }}
         >
           <Popover
             pin={pin}

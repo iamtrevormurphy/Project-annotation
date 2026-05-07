@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 
 export interface Pin {
   id: string
-  pageX: number
-  pageY: number
+  selector: string
+  offsetXPercent: number
+  offsetYPercent: number
   note: string
   createdAt: string
 }
@@ -44,11 +45,16 @@ export function useAnnotations() {
     loadFromServer().then(setPins)
   }, [])
 
-  const addPin = useCallback((pageX: number, pageY: number): Pin => {
+  const addPin = useCallback((
+    selector: string,
+    offsetXPercent: number,
+    offsetYPercent: number,
+  ): Pin => {
     const pin: Pin = {
       id: crypto.randomUUID(),
-      pageX,
-      pageY,
+      selector,
+      offsetXPercent,
+      offsetYPercent,
       note: '',
       createdAt: new Date().toISOString(),
     }

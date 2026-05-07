@@ -53,13 +53,3 @@
   background: rgba(99, 102, 241, 0.06);
 }
 
-.pinsLayer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2147483645;
-}
-
-.pinsLayer > * {
-  pointer-events: auto;
-}

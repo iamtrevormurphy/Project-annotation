@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-interface HighlightRect {
+export interface HighlightRect {
   top: number
   left: number
   width: number
@@ -15,7 +15,7 @@ function isHandoffElement(el: Element): boolean {
 
 export function useEditMode(
   active: boolean,
-  onElementClick: (pageX: number, pageY: number) => void,
+  onElementClick: (el: Element, clientX: number, clientY: number) => void,
 ) {
   const [highlight, setHighlight] = useState<HighlightRect | null>(null)
 
@@ -39,7 +39,7 @@ export function useEditMode(
     if (!el || isHandoffElement(el)) return
     e.preventDefault()
     e.stopPropagation()
-    onElementClick(e.clientX + window.scrollX, e.clientY + window.scrollY)
+    onElementClick(el, e.clientX, e.clientY)
   }, [onElementClick])
 
   useEffect(() => {

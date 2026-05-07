@@ -1,5 +1,5 @@
 .pin {
-  position: absolute;
+  position: fixed;
   z-index: 2147483645;
   background: none;
   border: none;

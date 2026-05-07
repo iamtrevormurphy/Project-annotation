@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { useAnnotations } from '../hooks/useAnnotations'
 import { useEditMode } from '../hooks/useEditMode'
+import { generateSelector } from '../utils/selector'
 import { Pin } from './Pin'
 import styles from './HandoffContextBar.module.css'
 
@@ -23,13 +24,16 @@ export function HandoffContextBar() {
   const [openPinId, setOpenPinId] = useState<string | null>(null)
   const { pins, addPin, updatePin, deletePin } = useAnnotations()
 
-  const handleElementClick = useCallback((pageX: number, pageY: number) => {
-    // If a popover is open, close it — next click will drop a new pin
+  const handleElementClick = useCallback((el: Element, clientX: number, clientY: number) => {
     if (openPinId !== null) {
       setOpenPinId(null)
       return
     }
-    const pin = addPin(pageX, pageY)
+    const rect = el.getBoundingClientRect()
+    const selector = generateSelector(el)
+    const offsetXPercent = rect.width > 0 ? (clientX - rect.left) / rect.width : 0.5
+    const offsetYPercent = rect.height > 0 ? (clientY - rect.top) / rect.height : 0.5
+    const pin = addPin(selector, offsetXPercent, offsetYPercent)
     setOpenPinId(pin.id)
   }, [addPin, openPinId])
 
@@ -38,14 +42,10 @@ export function HandoffContextBar() {
   // Close open popover when clicking outside any handoff element in visible mode
   useEffect(() => {
     if (!openPinId || barState === 'editing') return
-
     const handleOutsideClick = (e: MouseEvent) => {
       const el = e.target as Element | null
-      if (!el?.closest('[data-handoff]')) {
-        setOpenPinId(null)
-      }
+      if (!el?.closest('[data-handoff]')) setOpenPinId(null)
     }
-
     document.addEventListener('click', handleOutsideClick)
     return () => document.removeEventListener('click', handleOutsideClick)
   }, [openPinId, barState])
@@ -56,10 +56,7 @@ export function HandoffContextBar() {
   }
 
   const toggleEdit = () => {
-    setBarState(prev => {
-      if (prev === 'editing') return 'visible'
-      return 'editing'
-    })
+    setBarState(prev => prev === 'editing' ? 'visible' : 'editing')
   }
 
   const handleDeletePin = (id: string) => {
@@ -99,20 +96,16 @@ export function HandoffContextBar() {
         />
       )}
 
-      {contextActive && (
-        <div className={styles.pinsLayer} data-handoff>
-          {pins.map(pin => (
-            <Pin
-              key={pin.id}
-              pin={pin}
-              isOpen={pin.id === openPinId}
-              onToggle={() => setOpenPinId(prev => prev === pin.id ? null : pin.id)}
-              onUpdate={updatePin}
-              onDelete={handleDeletePin}
-            />
-          ))}
-        </div>
-      )}
+      {contextActive && pins.map(pin => (
+        <Pin
+          key={pin.id}
+          pin={pin}
+          isOpen={pin.id === openPinId}
+          onToggle={() => setOpenPinId(prev => prev === pin.id ? null : pin.id)}
+          onUpdate={updatePin}
+          onDelete={handleDeletePin}
+        />
+      ))}
     </>
   )
 }
