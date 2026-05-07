@@ -1,0 +1,15 @@
+.pin {
+  position: absolute;
+  z-index: 2147483645;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transform: translate(-50%, -100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: filter 0.15s ease;
+}
+
+.pin:hover {
+  filter: drop-shadow(0 3px 6px rgba(99, 102, 241, 0.4));
+}
