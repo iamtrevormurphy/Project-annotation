@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { Pin as PinType } from '../hooks/useAnnotations'
 import { Popover } from './Popover'
 import styles from './Pin.module.css'
@@ -33,13 +33,28 @@ function resolvePosition(pin: PinType): ViewportPos | null {
 
 export function Pin({ pin, isOpen, onToggle, onUpdate, onDelete }: PinProps) {
   const [pos, setPos] = useState<ViewportPos | null>(() => resolvePosition(pin))
+  const isOpenRef = useRef(isOpen)
+  const lastKnownPosRef = useRef<ViewportPos | null>(null)
+
+  useEffect(() => {
+    isOpenRef.current = isOpen
+  }, [isOpen])
 
   useEffect(() => {
     let rafId: number
     let mutationTimer: ReturnType<typeof setTimeout>
 
     function update() {
-      setPos(resolvePosition(pin))
+      const resolved = resolvePosition(pin)
+      if (resolved) {
+        lastKnownPosRef.current = resolved
+        setPos(resolved)
+      } else if (isOpenRef.current && lastKnownPosRef.current) {
+        // Element left the DOM while popover is open — hold position so user can keep typing
+        setPos(lastKnownPosRef.current)
+      } else {
+        setPos(null)
+      }
     }
 
     function scheduleRaf() {
@@ -55,7 +70,12 @@ export function Pin({ pin, isOpen, onToggle, onUpdate, onDelete }: PinProps) {
     update()
 
     const observer = new MutationObserver(scheduleMutation)
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] })
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class', 'hidden'],
+    })
 
     window.addEventListener('scroll', scheduleRaf, { capture: true, passive: true })
     window.addEventListener('resize', scheduleRaf)
