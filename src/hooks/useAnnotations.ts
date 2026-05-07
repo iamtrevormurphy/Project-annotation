@@ -44,7 +44,7 @@ export function useAnnotations() {
     loadFromServer().then(setPins)
   }, [])
 
-  const addPin = useCallback(async (pageX: number, pageY: number): Promise<Pin> => {
+  const addPin = useCallback((pageX: number, pageY: number): Pin => {
     const pin: Pin = {
       id: crypto.randomUUID(),
       pageX,
@@ -52,9 +52,8 @@ export function useAnnotations() {
       note: '',
       createdAt: new Date().toISOString(),
     }
-    const next = (prev: Pin[]) => [...prev, pin]
     setPins(prev => {
-      const updated = next(prev)
+      const updated = [...prev, pin]
       saveToServer(updated)
       return updated
     })

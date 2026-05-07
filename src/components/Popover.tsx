@@ -18,9 +18,12 @@ export function Popover({ pin, onUpdate, onDelete, onClose }: PopoverProps) {
 
   return (
     <div className={styles.popover} data-handoff>
-      <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
-        ×
-      </button>
+      <div className={styles.header}>
+        <span className={styles.label}>Annotation</span>
+        <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
+          ×
+        </button>
+      </div>
       <textarea
         ref={textareaRef}
         className={styles.textarea}

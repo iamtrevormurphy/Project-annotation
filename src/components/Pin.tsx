@@ -1,45 +1,40 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { Pin as PinType } from '../hooks/useAnnotations'
 import { Popover } from './Popover'
 import styles from './Pin.module.css'
 
 interface PinProps {
   pin: PinType
-  openOnMount?: boolean
+  isOpen: boolean
+  onToggle: () => void
   onUpdate: (id: string, note: string) => void
   onDelete: (id: string) => void
 }
 
 const POPOVER_OFFSET = 12
 
-export function Pin({ pin, openOnMount, onUpdate, onDelete }: PinProps) {
-  const [open, setOpen] = useState(openOnMount ?? false)
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
+export function Pin({ pin, isOpen, onToggle, onUpdate, onDelete }: PinProps) {
   const markerRef = useRef<HTMLButtonElement>(null)
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
 
   useEffect(() => {
-    if (open && markerRef.current) {
-      const rect = markerRef.current.getBoundingClientRect()
-      const spaceBelow = window.innerHeight - rect.bottom
-      const popoverHeight = 180
-
-      const top = spaceBelow > popoverHeight
-        ? pin.pageY + POPOVER_OFFSET
-        : pin.pageY - popoverHeight - POPOVER_OFFSET
-
-      const left = Math.min(
-        pin.pageX + POPOVER_OFFSET,
-        window.scrollX + window.innerWidth - 280,
-      )
-
-      setPopoverPos({ top, left })
+    if (!isOpen || !markerRef.current) {
+      setPopoverPos(null)
+      return
     }
-  }, [open, pin.pageX, pin.pageY])
+    const rect = markerRef.current.getBoundingClientRect()
+    const popoverHeight = 200
+    const top = (window.innerHeight - rect.bottom) > popoverHeight
+      ? pin.pageY + POPOVER_OFFSET
+      : pin.pageY - popoverHeight - POPOVER_OFFSET
 
-  const handleDelete = (id: string) => {
-    setOpen(false)
-    onDelete(id)
-  }
+    const left = Math.min(
+      pin.pageX + POPOVER_OFFSET,
+      window.scrollX + window.innerWidth - 280,
+    )
+
+    setPopoverPos({ top, left })
+  }, [isOpen, pin.pageX, pin.pageY])
 
   return (
     <>
@@ -48,7 +43,7 @@ export function Pin({ pin, openOnMount, onUpdate, onDelete }: PinProps) {
         data-handoff
         className={styles.pin}
         style={{ top: pin.pageY, left: pin.pageX }}
-        onClick={() => setOpen(prev => !prev)}
+        onClick={onToggle}
         aria-label="Annotation pin"
       >
         <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
@@ -60,7 +55,7 @@ export function Pin({ pin, openOnMount, onUpdate, onDelete }: PinProps) {
         </svg>
       </button>
 
-      {open && popoverPos && (
+      {isOpen && popoverPos && (
         <div
           data-handoff
           style={{
@@ -73,8 +68,8 @@ export function Pin({ pin, openOnMount, onUpdate, onDelete }: PinProps) {
           <Popover
             pin={pin}
             onUpdate={onUpdate}
-            onDelete={handleDelete}
-            onClose={() => setOpen(false)}
+            onDelete={onDelete}
+            onClose={onToggle}
           />
         </div>
       )}
