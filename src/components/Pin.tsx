@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Pin as PinType } from '../hooks/useAnnotations'
 import { Popover } from './Popover'
 import styles from './Pin.module.css'
@@ -38,6 +38,18 @@ export function Pin({ pin, isOpen, onToggle, onUpdate, onDelete }: PinProps) {
 
   useEffect(() => {
     isOpenRef.current = isOpen
+  }, [isOpen])
+
+  // Neutralize focus traps in open menus/popups before the textarea gets focused.
+  // useLayoutEffect runs synchronously after DOM mutation, before useEffect in children,
+  // so inert is set before Popover's useEffect tries to focus the textarea.
+  useLayoutEffect(() => {
+    if (!isOpen) return
+    const traps = Array.from(
+      document.querySelectorAll('[role="menu"], [role="listbox"], [role="dialog"]')
+    ).filter(el => !el.closest('[data-handoff]'))
+    traps.forEach(el => el.setAttribute('inert', ''))
+    return () => traps.forEach(el => el.removeAttribute('inert'))
   }, [isOpen])
 
   useEffect(() => {
