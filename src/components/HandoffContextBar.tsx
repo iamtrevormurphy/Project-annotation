@@ -75,9 +75,6 @@ export function HandoffContextBar() {
         />
       )}
 
-      {/* Edit mode cursor overlay */}
-      {editActive && <div className={styles.editOverlay} data-handoff />}
-
       {/* Pins layer */}
       {contextActive && (
         <div className={styles.pinsLayer} data-handoff>

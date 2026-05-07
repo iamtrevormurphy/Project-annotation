@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface HighlightRect {
   top: number
@@ -18,44 +18,41 @@ export function useEditMode(
   onElementClick: (pageX: number, pageY: number) => void,
 ) {
   const [highlight, setHighlight] = useState<HighlightRect | null>(null)
-  const highlightRef = useRef<HighlightRect | null>(null)
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const el = e.target as Element | null
     if (!el || isHandoffElement(el)) {
       setHighlight(null)
-      highlightRef.current = null
       return
     }
     const rect = el.getBoundingClientRect()
-    const next = {
+    setHighlight({
       top: rect.top + window.scrollY,
       left: rect.left + window.scrollX,
       width: rect.width,
       height: rect.height,
-    }
-    highlightRef.current = next
-    setHighlight(next)
+    })
   }, [])
 
   const handleClick = useCallback((e: MouseEvent) => {
-    const el = document.elementFromPoint(e.clientX, e.clientY)
+    const el = e.target as Element | null
     if (!el || isHandoffElement(el)) return
     e.preventDefault()
     e.stopPropagation()
-    const pageX = e.clientX + window.scrollX
-    const pageY = e.clientY + window.scrollY
-    onElementClick(pageX, pageY)
+    onElementClick(e.clientX + window.scrollX, e.clientY + window.scrollY)
   }, [onElementClick])
 
   useEffect(() => {
     if (!active) {
       setHighlight(null)
+      document.body.style.cursor = ''
       return
     }
+    document.body.style.cursor = 'crosshair'
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('click', handleClick, true)
     return () => {
+      document.body.style.cursor = ''
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('click', handleClick, true)
       setHighlight(null)
