@@ -2,6 +2,63 @@
 
 A floating annotation layer for React prototypes. Drop pins on any UI element, add notes, and share them with your team via git.
 
+Works instantly in any React app with **zero backend** — pins persist to `localStorage` out of the box. Add the optional Vite plugin to upgrade to a git-shared annotations file so your whole team sees the same pins.
+
+---
+
+## Install
+
+```bash
+npm install github:iamtrevormurphy/Project-annotation
+```
+
+Pin to a released version (recommended for teams):
+
+```bash
+npm install github:iamtrevormurphy/Project-annotation#v0.2.0
+```
+
+No registry, no auth, no `.npmrc` — installs straight from the public GitHub repo. Works with npm, pnpm, and yarn.
+
+---
+
+## Use (zero-config)
+
+Three steps, no backend required.
+
+### 1. Mount the component at your app root
+
+It renders outside your normal layout via `position: fixed`, so mount it once as a sibling of your app — not wrapping it.
+
+```tsx
+import { HandoffContextBar } from '@alphasense-org/handoff-context'
+import '@alphasense-org/handoff-context/style.css'
+
+export default function App() {
+  return (
+    <>
+      <YourApp />
+      <HandoffContextBar />
+    </>
+  )
+}
+```
+
+### 2. (Optional) Gate it behind an env flag
+
+To turn the layer on and off for everyone via a committed flag:
+
+```tsx
+{import.meta.env.VITE_HANDOFF === 'true' && <HandoffContextBar />}
+```
+
+```bash
+# .env
+VITE_HANDOFF=true
+```
+
+That's it. Pins now persist to `localStorage` in each person's browser. To share pins across your team, add the optional Vite plugin below.
+
 ---
 
 ## How it works
@@ -10,112 +67,6 @@ A floating annotation layer for React prototypes. Drop pins on any UI element, a
 - **Enable context** shows all pins placed on the page
 - The **edit icon** enters edit mode — hover over any element to highlight it, click to drop a pin and open an annotation popover
 - Pins are anchored to their target element and only appear when that element is in the DOM (so menu pins only show when the menu is open, page-specific pins only show on that page, etc.)
-- Annotations are saved to `public/handoff-annotations.json` in the consuming project — commit and push to share with teammates
-
----
-
-## Before you install — access requirements
-
-This package is hosted in the GitLab Package Registry. **You must have access to this project to install it.** If the install fails with an auth error, work through the following:
-
-### Step 1 — Verify you have project access
-
-Go to `https://gitlab.com/alphasense-org/sandbox/handoff-context-builder` and confirm you can view the repository. If you see a 404 or are asked to log in, you do not have access.
-
-**To get access:** ask a Maintainer or Owner of the `alphasense-org` GitLab group to add you to the `handoff-context-builder` project with at least **Reporter** role. They can do this at:
-
-> GitLab → handoff-context-builder → Manage → Members → Invite members
-
-### Step 2 — Verify your SSH key is registered with GitLab
-
-The package installs via SSH. Run:
-
-```bash
-ssh -T git@gitlab.com
-```
-
-You should see: `Welcome to GitLab, @your-username!`
-
-If you see a permission denied error, your SSH key is not registered. Add it at:
-
-> GitLab → Profile (top right) → Preferences → SSH Keys → Add new key
-
-Your public key is at `~/.ssh/id_ed25519.pub` or `~/.ssh/id_rsa.pub`. Paste the contents into GitLab.
-
-### Step 3 — Verify pnpm is installed
-
-```bash
-pnpm --version
-```
-
-If not installed: `npm install -g pnpm`
-
----
-
-## Installation
-
-Once access is confirmed, add the package to your project:
-
-```bash
-pnpm add @alphasense-org/handoff-context
-```
-
----
-
-## Setup
-
-### 1. Add the Vite plugin
-
-```ts
-// vite.config.ts
-import { handoffPlugin } from '@alphasense-org/handoff-context/vite'
-
-export default defineConfig({
-  plugins: [
-    handoffPlugin(), // add this alongside your existing plugins
-  ],
-})
-```
-
-The plugin creates `public/handoff-annotations.json` on first run and serves a local API endpoint for saving annotations during development. It does nothing in production builds.
-
-### 2. Add the component
-
-Mount it once at the root of your app — it renders outside your normal layout via `position: fixed`.
-
-```tsx
-import { HandoffContextBar } from '@alphasense-org/handoff-context'
-import '@alphasense-org/handoff-context/style.css'
-
-// Inside your root layout JSX:
-<HandoffContextBar />
-```
-
-### 3. Add the env flag
-
-Control visibility via a `.env` file committed to your project:
-
-```bash
-# .env
-VITE_HANDOFF=true
-```
-
-Update your component to respect it:
-
-```tsx
-{import.meta.env.VITE_HANDOFF === 'true' && <HandoffContextBar />}
-```
-
-Set to `false` and push to hide the annotation layer for everyone. Set to `true` and push to show it.
-
-### 4. Commit the annotations file
-
-The first time you start the dev server, `public/handoff-annotations.json` will be created automatically. Add it to your repo so teammates receive your annotations:
-
-```bash
-git add public/handoff-annotations.json
-git commit -m "Add handoff annotations file"
-```
 
 ---
 
@@ -136,9 +87,30 @@ git commit -m "Add handoff annotations file"
 
 ---
 
-## Sharing annotations
+## Optional: shared annotations via git
 
-Annotations are just a JSON file. To share with teammates:
+By default, pins live in each person's `localStorage`. To share one set of annotations with your team, add the Vite plugin. It persists pins to `public/handoff-annotations.json` in your project, which you commit and push.
+
+### 1. Add the plugin
+
+```ts
+// vite.config.ts
+import { handoffPlugin } from '@alphasense-org/handoff-context/vite'
+
+export default defineConfig({
+  plugins: [
+    handoffPlugin(), // add alongside your existing plugins
+  ],
+})
+```
+
+The plugin creates `public/handoff-annotations.json` on first run and serves a local dev-server endpoint for reading/writing it. It does nothing in production builds.
+
+### 2. Restart the dev server
+
+`<HandoffContextBar />` auto-detects the plugin's endpoint and switches persistence from `localStorage` to the shared file — no code change needed (the default `storage="auto"` mode handles this).
+
+### 3. Commit the annotations file
 
 ```bash
 git add public/handoff-annotations.json
@@ -150,15 +122,31 @@ Teammates get them on next `git pull`.
 
 ---
 
-## Publishing updates (maintainers only)
+## Props
 
-To publish a new version to the package registry you need **Maintainer or Owner** access to this project plus a deploy token with `write_package_registry` scope.
+`<HandoffContextBar />` accepts optional props to control persistence:
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `storage` | `'auto' \| 'local' \| 'file'` | `'auto'` | `auto` uses the plugin's file endpoint when present, else `localStorage`. Force a mode with `local` or `file`. |
+| `endpoint` | `string` | `/handoff-annotations` | Dev-server endpoint served by the Vite plugin. |
+| `storageKey` | `string` | `handoff-context:pins` | `localStorage` key used in local mode. |
+
+The component is SSR-safe (Next.js etc.) — all `window`/`localStorage` access is guarded.
+
+---
+
+## Maintaining & releasing (maintainers only)
+
+The built `dist/` is committed to the repo so git installs work with no build step on the consumer's machine. **This means any change to `src/` must be rebuilt and the new `dist/` committed**, or installs will serve stale code.
 
 ```bash
-# Bump the version in package.json first, then:
-GL_PUBLISH_TOKEN=<your-deploy-token> npm run publish:gitlab
+# after editing src/
+npm run build          # regenerates dist/
+git add src dist
+git commit -m "..."
+git tag v0.2.1         # bump per semver
+git push && git push --tags
 ```
 
-Deploy tokens can be created at:
-
-> GitLab → handoff-context-builder → Settings → Repository → Deploy tokens
+Consumers pin to a tag with `npm install github:iamtrevormurphy/Project-annotation#v0.2.1`.

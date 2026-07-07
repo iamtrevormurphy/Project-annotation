@@ -17,9 +17,11 @@ export function handoffPlugin(): Plugin {
     configureServer(server) {
       server.middlewares.use('/handoff-annotations', (req, res) => {
         res.setHeader('Content-Type', 'application/json')
+        res.setHeader('X-Handoff-Context', '1')
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+        res.setHeader('Access-Control-Expose-Headers', 'X-Handoff-Context')
 
         if (req.method === 'OPTIONS') {
           res.statusCode = 204

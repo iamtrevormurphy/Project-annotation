@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { useAnnotations } from '../hooks/useAnnotations'
+import { useAnnotations, type UseAnnotationsOptions } from '../hooks/useAnnotations'
 import { useEditMode } from '../hooks/useEditMode'
 import { generateSelector } from '../utils/selector'
 import { Pin } from './Pin'
@@ -19,10 +19,12 @@ const EditIcon = () => (
   </svg>
 )
 
-export function HandoffContextBar() {
+export type HandoffContextBarProps = UseAnnotationsOptions
+
+export function HandoffContextBar({ storage, endpoint, storageKey }: HandoffContextBarProps = {}) {
   const [barState, setBarState] = useState<BarState>('hidden')
   const [openPinId, setOpenPinId] = useState<string | null>(null)
-  const { pins, addPin, updatePin, deletePin } = useAnnotations()
+  const { pins, addPin, updatePin, deletePin } = useAnnotations({ storage, endpoint, storageKey })
 
   const handleElementClick = useCallback((el: Element, clientX: number, clientY: number) => {
     if (openPinId !== null) {

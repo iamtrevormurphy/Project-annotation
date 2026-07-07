@@ -1,2 +1,3 @@
 export { HandoffContextBar } from './components/HandoffContextBar'
-export type { Pin } from './hooks/useAnnotations'
+export type { HandoffContextBarProps } from './components/HandoffContextBar'
+export type { Pin, StorageMode, UseAnnotationsOptions } from './hooks/useAnnotations'
