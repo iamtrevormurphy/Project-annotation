@@ -7,14 +7,17 @@ import styles from './HandoffContextBar.module.css'
 
 type BarState = 'hidden' | 'visible' | 'editing'
 
-const EditIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+const AddIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+    <path d="M9.5 6.5H6.5V9.5H5.5V6.5H2.5V5.5H5.5V2.5H6.5V5.5H9.5V6.5Z" fill="currentColor" />
+  </svg>
+)
+
+const ListIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
     <path
-      d="M9.5 1.5l3 3L4 13H1v-3L9.5 1.5z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M4.5 9H10.5V8H4.5V9ZM1.5 3V4H10.5V3H1.5ZM4.5 6.5H10.5V5.5H4.5V6.5Z"
+      fill="currentColor"
     />
   </svg>
 )
@@ -24,6 +27,7 @@ export type HandoffContextBarProps = UseAnnotationsOptions
 export function HandoffContextBar({ storage, endpoint, storageKey }: HandoffContextBarProps = {}) {
   const [barState, setBarState] = useState<BarState>('hidden')
   const [openPinId, setOpenPinId] = useState<string | null>(null)
+  const [listOpen, setListOpen] = useState(false)
   const { pins, addPin, updatePin, deletePin } = useAnnotations({ storage, endpoint, storageKey })
 
   const handleElementClick = useCallback((el: Element, clientX: number, clientY: number) => {
@@ -52,6 +56,17 @@ export function HandoffContextBar({ storage, endpoint, storageKey }: HandoffCont
     return () => document.removeEventListener('click', handleOutsideClick)
   }, [openPinId, barState])
 
+  // Close the annotations list when clicking outside the menu
+  useEffect(() => {
+    if (!listOpen) return
+    const handleOutsideClick = (e: MouseEvent) => {
+      const el = e.target as Element | null
+      if (!el?.closest('[data-handoff]')) setListOpen(false)
+    }
+    document.addEventListener('click', handleOutsideClick)
+    return () => document.removeEventListener('click', handleOutsideClick)
+  }, [listOpen])
+
   const toggleContext = () => {
     setOpenPinId(null)
     setBarState(prev => prev === 'hidden' ? 'visible' : 'hidden')
@@ -66,23 +81,67 @@ export function HandoffContextBar({ storage, endpoint, storageKey }: HandoffCont
     if (id === openPinId) setOpenPinId(null)
   }
 
+  const jumpToPin = (id: string, selector: string) => {
+    setBarState(prev => prev === 'hidden' ? 'visible' : prev)
+    setOpenPinId(id)
+    setListOpen(false)
+    try {
+      document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } catch {
+      // Invalid/stale selector — nothing to scroll to
+    }
+  }
+
   const contextActive = barState !== 'hidden'
   const editActive = barState === 'editing'
 
   return (
     <>
-      <div className={styles.bar} data-handoff>
-        <button className={styles.chip} onClick={toggleContext}>
-          {contextActive ? 'Disable context' : 'Enable context'}
+      <div className={styles.menu} data-handoff>
+        <button
+          className={`${styles.pill} ${contextActive ? styles.pillActive : ''}`}
+          onClick={toggleContext}
+          aria-pressed={contextActive}
+        >
+          Toggle context
         </button>
         <button
-          className={`${styles.chip} ${styles.editChip} ${editActive ? styles.editActive : ''}`}
+          className={`${styles.iconBtn} ${editActive ? styles.iconBtnActive : ''}`}
           onClick={toggleEdit}
-          aria-label="Edit context"
+          aria-label="Add annotation"
           aria-pressed={editActive}
         >
-          <EditIcon />
+          <AddIcon />
         </button>
+        <button
+          className={`${styles.iconBtn} ${listOpen ? styles.iconBtnActive : ''}`}
+          onClick={() => setListOpen(prev => !prev)}
+          aria-label="Annotation list"
+          aria-pressed={listOpen}
+        >
+          <ListIcon />
+        </button>
+
+        {listOpen && (
+          <div className={styles.panel} data-handoff>
+            {pins.length === 0 ? (
+              <div className={styles.panelEmpty}>No annotations yet</div>
+            ) : (
+              pins.map((pin, i) => (
+                <button
+                  key={pin.id}
+                  className={styles.panelRow}
+                  onClick={() => jumpToPin(pin.id, pin.selector)}
+                >
+                  <span className={styles.panelIndex}>{i + 1}</span>
+                  <span className={pin.note ? styles.panelNote : styles.panelNoteEmpty}>
+                    {pin.note || 'Empty note'}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {editActive && highlight && (

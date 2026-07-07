@@ -72,9 +72,10 @@ That's it. Pins now persist to `localStorage` in each person's browser. To share
 
 ## How it works
 
-- A small chip floats in the top-right corner of the prototype
-- **Enable context** shows all pins placed on the page
-- The **edit icon** enters edit mode — hover over any element to highlight it, click to drop a pin and open an annotation popover
+- A small menu floats in the top-right corner of the prototype
+- **Toggle context** shows/hides all pins placed on the page
+- The **+ (add)** button enters edit mode — hover over any element to highlight it, click to drop a pin and open an annotation popover
+- The **list** button opens a panel of all annotations on the page — click one to jump to it
 - Pins are anchored to their target element and only appear when that element is in the DOM (so menu pins only show when the menu is open, page-specific pins only show on that page, etc.)
 
 ---
@@ -83,11 +84,12 @@ That's it. Pins now persist to `localStorage` in each person's browser. To share
 
 | Action | Result |
 |---|---|
-| Click **Enable context** | Shows all existing pins |
-| Click **Disable context** | Hides all pins |
-| Click the **edit icon** | Enters edit mode — cursor becomes a crosshair |
+| Click **Toggle context** | Shows / hides all existing pins |
+| Click the **+ (add)** button | Enters edit mode — cursor becomes a crosshair |
 | Hover an element in edit mode | Element is highlighted |
 | Click an element in edit mode | Drops a pin and opens the annotation popover |
+| Click the **list** button | Opens/closes the annotations panel |
+| Click a row in the panel | Jumps to that pin and opens its popover |
 | Type in the popover | Note is saved automatically |
 | Click **×** in popover | Closes popover, pin stays visible |
 | Click a pin | Reopens its popover |
