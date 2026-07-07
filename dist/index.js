@@ -1,23 +1,23 @@
 import { jsxs as N, jsx as a, Fragment as $ } from "react/jsx-runtime";
-import { useState as x, useRef as S, useEffect as y, useCallback as C } from "react";
-const Y = "/handoff-annotations", X = "handoff-context:pins", z = typeof window < "u";
-function L(t) {
+import { useState as k, useRef as P, useEffect as y, useCallback as x } from "react";
+const X = "/handoff-annotations", z = "handoff-context:pins", T = typeof window < "u";
+function S(t) {
   const e = t == null ? void 0 : t.pins;
   return Array.isArray(e) ? e : [];
 }
-function T(t) {
+function I(t) {
   return {
     async load() {
-      if (!z) return [];
+      if (!T) return [];
       try {
         const e = window.localStorage.getItem(t);
-        return e ? L(JSON.parse(e)) : [];
+        return e ? S(JSON.parse(e)) : [];
       } catch {
         return [];
       }
     },
     async save(e) {
-      if (z)
+      if (T)
         try {
           window.localStorage.setItem(t, JSON.stringify({ pins: e }));
         } catch {
@@ -30,7 +30,7 @@ function H(t) {
     async load() {
       try {
         const e = await fetch(t);
-        return e.ok ? L(await e.json()) : [];
+        return e.ok ? S(await e.json()) : [];
       } catch {
         return [];
       }
@@ -52,10 +52,10 @@ async function U(t) {
     const e = await fetch(t);
     if (!e.ok) return { present: !1, pins: [] };
     if (e.headers.get("X-Handoff-Context"))
-      return { present: !0, pins: L(await e.json()) };
+      return { present: !0, pins: S(await e.json()) };
     if (!(e.headers.get("Content-Type") ?? "").includes("application/json")) return { present: !1, pins: [] };
     const s = await e.json();
-    return Array.isArray(s == null ? void 0 : s.pins) ? { present: !0, pins: L(s) } : { present: !1, pins: [] };
+    return Array.isArray(s == null ? void 0 : s.pins) ? { present: !0, pins: S(s) } : { present: !1, pins: [] };
   } catch {
     return { present: !1, pins: [] };
   }
@@ -63,14 +63,14 @@ async function U(t) {
 function Z(t = {}) {
   const {
     storage: e = "auto",
-    endpoint: o = Y,
-    storageKey: s = X
-  } = t, [d, i] = x([]), n = S(T(s));
+    endpoint: o = X,
+    storageKey: s = z
+  } = t, [d, i] = k([]), n = P(I(s));
   y(() => {
     let h = !1;
     async function g() {
       if (e === "local") {
-        n.current = T(s);
+        n.current = I(s);
         const u = await n.current.load();
         h || i(u);
         return;
@@ -82,13 +82,13 @@ function Z(t = {}) {
         return;
       }
       const p = await U(o);
-      h || (p.present ? (n.current = H(o), i(p.pins)) : (n.current = T(s), i(await n.current.load())));
+      h || (p.present ? (n.current = H(o), i(p.pins)) : (n.current = I(s), i(await n.current.load())));
     }
     return g(), () => {
       h = !0;
     };
   }, [e, o, s]);
-  const c = C((h, g, p) => {
+  const c = x((h, g, p) => {
     const u = {
       id: crypto.randomUUID(),
       selector: h,
@@ -101,12 +101,12 @@ function Z(t = {}) {
       const E = [...f, u];
       return n.current.save(E), E;
     }), u;
-  }, []), l = C((h, g) => {
+  }, []), l = x((h, g) => {
     i((p) => {
       const u = p.map((f) => f.id === h ? { ...f, note: g } : f);
       return n.current.save(u), u;
     });
-  }, []), b = C((h) => {
+  }, []), b = x((h) => {
     i((g) => {
       const p = g.filter((u) => u.id !== h);
       return n.current.save(p), p;
@@ -119,7 +119,7 @@ function O(t) {
   return t.closest(`[${q}]`) !== null;
 }
 function J(t, e) {
-  const [o, s] = x(null), d = C((n) => {
+  const [o, s] = k(null), d = x((n) => {
     const c = n.target;
     if (!c || O(c)) {
       s(null);
@@ -132,7 +132,7 @@ function J(t, e) {
       width: l.width,
       height: l.height
     });
-  }, []), i = C((n) => {
+  }, []), i = x((n) => {
     const c = n.target;
     !c || O(c) || (n.preventDefault(), n.stopPropagation(), e(c, n.clientX, n.clientY));
   }, [e]);
@@ -187,7 +187,7 @@ const G = "_popover_whp9i_1", W = "_header_whp9i_15", Q = "_label_whp9i_22", ee 
   deleteBtn: oe
 };
 function ie({ pin: t, onUpdate: e, onDelete: o, onClose: s }) {
-  const d = S(null);
+  const d = P(null);
   return y(() => {
     var i;
     (i = d.current) == null || i.focus();
@@ -232,14 +232,14 @@ function R(t) {
   }
 }
 function ce({ pin: t, isOpen: e, onToggle: o, onUpdate: s, onDelete: d }) {
-  const [i, n] = x(() => R(t)), c = S(e), l = S(null);
+  const [i, n] = k(() => R(t)), c = P(e), l = P(null);
   if (y(() => {
     c.current = e;
   }, [e]), y(() => {
     let g, p;
     function u() {
-      const B = R(t);
-      B ? (l.current = B, n(B)) : c.current && l.current ? n(l.current) : n(null);
+      const C = R(t);
+      C ? (l.current = C, n(C)) : c.current && l.current ? n(l.current) : n(null);
     }
     function f() {
       cancelAnimationFrame(g), g = requestAnimationFrame(u);
@@ -248,14 +248,14 @@ function ce({ pin: t, isOpen: e, onToggle: o, onUpdate: s, onDelete: d }) {
       clearTimeout(p), p = setTimeout(u, 80);
     }
     u();
-    const P = new MutationObserver(E);
-    return P.observe(document.body, {
+    const B = new MutationObserver(E);
+    return B.observe(document.body, {
       childList: !0,
       subtree: !0,
       attributes: !0,
       attributeFilter: ["style", "class", "hidden"]
     }), window.addEventListener("scroll", f, { capture: !0, passive: !0 }), window.addEventListener("resize", f), () => {
-      cancelAnimationFrame(g), clearTimeout(p), P.disconnect(), window.removeEventListener("scroll", f, { capture: !0 }), window.removeEventListener("resize", f);
+      cancelAnimationFrame(g), clearTimeout(p), B.disconnect(), window.removeEventListener("scroll", f, { capture: !0 }), window.removeEventListener("resize", f);
     };
   }, [t.selector, t.offsetXPercent, t.offsetYPercent]), !i) return null;
   const b = Math.min(i.x + 12, window.innerWidth - 280), h = i.y + 12;
@@ -298,7 +298,7 @@ function ce({ pin: t, isOpen: e, onToggle: o, onUpdate: s, onDelete: d }) {
     )
   ] });
 }
-const ae = "_menu_10z02_1", le = "_pill_10z02_16", de = "_pillActive_10z02_38", ue = "_iconBtn_10z02_48", fe = "_iconBtnActive_10z02_68", he = "_panel_10z02_78", pe = "_panelEmpty_10z02_95", me = "_panelRow_10z02_102", ge = "_panelIndex_10z02_123", ve = "_panelNote_10z02_137", we = "_panelNoteEmpty_10z02_143", _e = "_highlight_10z02_151", m = {
+const ae = "_menu_6kj2t_1", le = "_pill_6kj2t_16", de = "_pillActive_6kj2t_38", ue = "_iconBtn_6kj2t_48", fe = "_iconBtnActive_6kj2t_68", he = "_panel_6kj2t_78", pe = "_panelEmpty_6kj2t_95", me = "_panelRow_6kj2t_102", ge = "_panelIndex_6kj2t_123", ve = "_panelNote_6kj2t_137", we = "_panelNoteEmpty_6kj2t_143", _e = "_highlight_6kj2t_151", m = {
   menu: ae,
   pill: le,
   pillActive: de,
@@ -319,13 +319,13 @@ const ae = "_menu_10z02_1", le = "_pill_10z02_16", de = "_pillActive_10z02_38", 
   }
 ) });
 function Ee({ storage: t, endpoint: e, storageKey: o } = {}) {
-  const [s, d] = x("hidden"), [i, n] = x(null), [c, l] = x(!1), { pins: b, addPin: h, updatePin: g, deletePin: p } = Z({ storage: t, endpoint: e, storageKey: o }), u = C((r, w, v) => {
+  const [s, d] = k("hidden"), [i, n] = k(null), [c, l] = k(!1), { pins: b, addPin: h, updatePin: g, deletePin: p } = Z({ storage: t, endpoint: e, storageKey: o }), u = x((r, w, v) => {
     if (i !== null) {
       n(null);
       return;
     }
-    const _ = r.getBoundingClientRect(), F = K(r), D = _.width > 0 ? (w - _.left) / _.width : 0.5, M = _.height > 0 ? (v - _.top) / _.height : 0.5, j = h(F, D, M);
-    n(j.id);
+    const _ = r.getBoundingClientRect(), F = K(r), D = _.width > 0 ? (w - _.left) / _.width : 0.5, M = _.height > 0 ? (v - _.top) / _.height : 0.5, Y = h(F, D, M);
+    n(Y.id);
   }, [h, i]), { highlight: f } = J(s === "editing", u);
   y(() => {
     if (!i || s === "editing") return;
@@ -344,9 +344,9 @@ function Ee({ storage: t, endpoint: e, storageKey: o } = {}) {
   }, [c]);
   const E = () => {
     n(null), d((r) => r === "hidden" ? "visible" : "hidden");
-  }, P = () => {
+  }, B = () => {
     d((r) => r === "editing" ? "visible" : "editing");
-  }, B = (r) => {
+  }, C = (r) => {
     p(r), r === i && n(null);
   }, V = (r, w) => {
     var v;
@@ -355,25 +355,25 @@ function Ee({ storage: t, endpoint: e, storageKey: o } = {}) {
       (v = document.querySelector(w)) == null || v.scrollIntoView({ behavior: "smooth", block: "center" });
     } catch {
     }
-  }, k = s !== "hidden", I = s === "editing";
+  }, L = s !== "hidden", j = s === "editing";
   return /* @__PURE__ */ N($, { children: [
     /* @__PURE__ */ N("div", { className: m.menu, "data-handoff": !0, children: [
       /* @__PURE__ */ a(
         "button",
         {
-          className: `${m.pill} ${k ? m.pillActive : ""}`,
+          className: `${m.pill} ${L ? m.pillActive : ""}`,
           onClick: E,
-          "aria-pressed": k,
+          "aria-pressed": L,
           children: "Toggle context"
         }
       ),
       /* @__PURE__ */ a(
         "button",
         {
-          className: `${m.iconBtn} ${I ? m.iconBtnActive : ""}`,
-          onClick: P,
+          className: `${m.iconBtn} ${j ? m.iconBtnActive : ""}`,
+          onClick: B,
           "aria-label": "Add annotation",
-          "aria-pressed": I,
+          "aria-pressed": j,
           children: /* @__PURE__ */ a(ye, {})
         }
       ),
@@ -400,7 +400,7 @@ function Ee({ storage: t, endpoint: e, storageKey: o } = {}) {
         r.id
       )) })
     ] }),
-    I && f && /* @__PURE__ */ a(
+    j && f && /* @__PURE__ */ a(
       "div",
       {
         "data-handoff": !0,
@@ -413,14 +413,14 @@ function Ee({ storage: t, endpoint: e, storageKey: o } = {}) {
         }
       }
     ),
-    k && b.map((r) => /* @__PURE__ */ a(
+    L && b.map((r) => /* @__PURE__ */ a(
       ce,
       {
         pin: r,
         isOpen: r.id === i,
         onToggle: () => n((w) => w === r.id ? null : r.id),
         onUpdate: g,
-        onDelete: B
+        onDelete: C
       },
       r.id
     ))
