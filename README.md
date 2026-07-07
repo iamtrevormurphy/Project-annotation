@@ -8,17 +8,26 @@ Works instantly in any React app with **zero backend** — pins persist to `loca
 
 ## Install
 
+Use **the same package manager your project already uses** — installing with `npm` in a `pnpm`/`yarn` project (or vice versa) will fail with resolver errors like `Cannot read properties of null (reading 'matches')`.
+
 ```bash
+# pnpm
+pnpm add github:iamtrevormurphy/Project-annotation
+
+# npm
 npm install github:iamtrevormurphy/Project-annotation
+
+# yarn
+yarn add iamtrevormurphy/Project-annotation
 ```
 
-Pin to a released version (recommended for teams):
+Pin to a released version (recommended for teams) by appending the tag:
 
 ```bash
-npm install github:iamtrevormurphy/Project-annotation#v0.2.0
+pnpm add github:iamtrevormurphy/Project-annotation#v0.2.0
 ```
 
-No registry, no auth, no `.npmrc` — installs straight from the public GitHub repo. Works with npm, pnpm, and yarn.
+No registry, no auth, no `.npmrc` — installs straight from the public GitHub repo.
 
 ---
 
